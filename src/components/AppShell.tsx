@@ -8,6 +8,7 @@ import { initials } from "@/lib/format";
 const NAV = [
   { href: "/feed", label: "Início" },
   { href: "/search", label: "Busca" },
+  { href: "/connections", label: "Conexões" },
   { href: "/network", label: "Rede" },
   { href: "/analytics", label: "Analytics" },
 ];

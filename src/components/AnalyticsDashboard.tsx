@@ -7,15 +7,19 @@ import {
   getChurnUsers,
   getCohorts,
   getDau,
+  getExperiments,
+  getMLModels,
   getTopPosts,
   seedDemo,
 } from "@/lib/api";
 import { formatPct } from "@/lib/format";
 import type {
+  ABExperimentResult,
   AnalyticsOverview,
   ChurnUser,
   CohortRow,
   DauPoint,
+  MLModel,
   TopPost,
 } from "@/lib/types";
 
@@ -34,24 +38,30 @@ export function AnalyticsDashboard() {
   const [topPosts, setTopPosts] = useState<TopPost[]>([]);
   const [cohorts, setCohorts] = useState<CohortRow[]>([]);
   const [churn, setChurn] = useState<ChurnUser[]>([]);
+  const [experiments, setExperiments] = useState<ABExperimentResult[]>([]);
+  const [mlModels, setMlModels] = useState<MLModel[]>([]);
   const [error, setError] = useState("");
   const [seeding, setSeeding] = useState(false);
 
   async function load() {
     setError("");
     try {
-      const [o, d, t, c, ch] = await Promise.all([
+      const [o, d, t, c, ch, exp, models] = await Promise.all([
         getAnalyticsOverview(),
         getDau(14),
         getTopPosts(5),
         getCohorts(),
         getChurnUsers(10),
+        getExperiments(),
+        getMLModels(),
       ]);
       setOverview(o);
       setDau(d);
       setTopPosts(t);
       setCohorts(c.slice(0, 12));
       setChurn(ch);
+      setExperiments(exp);
+      setMlModels(models);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar analytics");
     }
@@ -204,6 +214,85 @@ export function AnalyticsDashboard() {
                   >
                     {(u.churn_probability * 100).toFixed(0)}%
                   </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="li-card p-4">
+          <h2 className="mb-4 text-sm font-semibold">Experimentos A/B</h2>
+          {experiments.length === 0 ? (
+            <p className="text-sm text-[var(--li-muted)]">
+              Nenhum resultado de experimento ainda.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-left text-[var(--li-muted)]">
+                    <th className="pb-2">Experimento</th>
+                    <th className="pb-2">Variante</th>
+                    <th className="pb-2">Métrica</th>
+                    <th className="pb-2">IC 95%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {experiments.map((e, i) => (
+                    <tr
+                      key={`${e.experiment_id}-${e.variant}-${i}`}
+                      className="border-t border-[var(--li-border)]"
+                    >
+                      <td className="py-2">{e.experiment_name}</td>
+                      <td className="py-2">{e.variant}</td>
+                      <td className="py-2">
+                        {formatPct(e.metric_value)} (n={e.sample_size})
+                      </td>
+                      <td className="py-2">
+                        {e.ci_lower != null && e.ci_upper != null
+                          ? `${formatPct(e.ci_lower)} – ${formatPct(e.ci_upper)}`
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="li-card p-4">
+          <h2 className="mb-4 text-sm font-semibold">Modelos ML</h2>
+          {mlModels.length === 0 ? (
+            <p className="text-sm text-[var(--li-muted)]">
+              Nenhum modelo treinado ainda.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {mlModels.map((m) => (
+                <li key={m.id} className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">
+                      {m.model_name} v{m.version}
+                    </span>
+                    {m.is_active && (
+                      <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-800">
+                        ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-[var(--li-muted)]">
+                    Treinado em {new Date(m.trained_at).toLocaleDateString()}
+                  </p>
+                  {m.metrics && Object.keys(m.metrics).length > 0 && (
+                    <p className="mt-1 text-xs">
+                      {Object.entries(m.metrics)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(" · ")}
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>

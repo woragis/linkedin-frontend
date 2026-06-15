@@ -10,19 +10,12 @@ import {
   deleteEducation,
   deleteExperience,
   getMe,
+  patchExperience,
   patchProfile,
   replaceSkills,
   ApiRequestError,
 } from "@/lib/api";
-import {
-  educationDegree,
-  educationField,
-  educationInstitution,
-  experienceCompany,
-  experienceTitle,
-  recordId,
-} from "@/lib/profile-helpers";
-import type { Profile } from "@/lib/types";
+import type { Experience, Profile } from "@/lib/types";
 
 function Field({
   label,
@@ -39,6 +32,123 @@ function Field({
   );
 }
 
+function ExperienceRow({
+  experience: e,
+  saving,
+  onRemove,
+  onSaved,
+}: {
+  experience: Experience;
+  saving: boolean;
+  onRemove: (id: string) => void;
+  onSaved: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(e.title);
+  const [company, setCompany] = useState(e.company?.name ?? "");
+  const [description, setDescription] = useState(e.description);
+  const [isCurrent, setIsCurrent] = useState(e.is_current);
+  const [error, setError] = useState("");
+
+  async function saveEdit() {
+    setError("");
+    try {
+      await patchExperience(e.id, {
+        title: title.trim(),
+        company_name: company.trim(),
+        description: description.trim(),
+        is_current: isCurrent,
+      });
+      setEditing(false);
+      onSaved();
+    } catch (err) {
+      setError(
+        err instanceof ApiRequestError ? err.message : "Erro ao salvar",
+      );
+    }
+  }
+
+  if (editing) {
+    return (
+      <li className="space-y-2 border-b border-[var(--li-border)] pb-3 last:border-0">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <input
+            className="li-input text-sm"
+            value={company}
+            onChange={(ev) => setCompany(ev.target.value)}
+            placeholder="Empresa"
+          />
+          <input
+            className="li-input text-sm"
+            value={title}
+            onChange={(ev) => setTitle(ev.target.value)}
+            placeholder="Cargo"
+          />
+        </div>
+        <textarea
+          className="li-input min-h-[60px] text-sm"
+          value={description}
+          onChange={(ev) => setDescription(ev.target.value)}
+          placeholder="Descrição"
+        />
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={isCurrent}
+            onChange={(ev) => setIsCurrent(ev.target.checked)}
+          />
+          Trabalho atual
+        </label>
+        {error && <p className="text-xs text-red-600">{error}</p>}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={saveEdit}
+            disabled={saving}
+            className="li-btn li-btn-primary px-3 py-1 text-xs"
+          >
+            Salvar
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            className="li-btn li-btn-ghost px-3 py-1 text-xs"
+          >
+            Cancelar
+          </button>
+        </div>
+      </li>
+    );
+  }
+
+  return (
+    <li className="flex items-start justify-between gap-3 border-b border-[var(--li-border)] pb-3 last:border-0">
+      <div>
+        <p className="font-medium">{e.title}</p>
+        <p className="text-sm text-[var(--li-muted)]">{e.company?.name}</p>
+      </div>
+      <div className="flex shrink-0 gap-2">
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          disabled={saving}
+          className="text-xs text-[var(--li-blue)] hover:underline"
+        >
+          Editar
+        </button>
+        <button
+          type="button"
+          onClick={() => onRemove(e.id)}
+          disabled={saving}
+          className="text-xs text-red-600 hover:underline"
+        >
+          Remover
+        </button>
+      </div>
+    </li>
+  );
+}
+
 export function ProfileEditForm() {
   const router = useRouter();
   const { refreshProfile } = useAuth();
@@ -52,6 +162,7 @@ export function ProfileEditForm() {
   const [headline, setHeadline] = useState("");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [skillsText, setSkillsText] = useState("");
 
   const [expCompany, setExpCompany] = useState("");
@@ -73,9 +184,10 @@ export function ProfileEditForm() {
       setHeadline(me.headline);
       setBio(me.bio);
       setLocation(me.location);
+      setAvatarUrl(me.avatar_url ?? "");
       setSkillsText(
         (me.skills ?? [])
-          .map((s) => s.name ?? s.Name ?? "")
+          .map((s) => s.name)
           .filter(Boolean)
           .join(", "),
       );
@@ -101,6 +213,7 @@ export function ProfileEditForm() {
         headline,
         bio,
         location,
+        avatar_url: avatarUrl.trim() || null,
       });
       setProfile(updated);
       await refreshProfile();
@@ -264,6 +377,15 @@ export function ProfileEditForm() {
             required
           />
         </Field>
+        <Field label="URL do avatar">
+          <input
+            className="li-input"
+            type="url"
+            value={avatarUrl}
+            onChange={(e) => setAvatarUrl(e.target.value)}
+            placeholder="https://..."
+          />
+        </Field>
         <Field label="Título profissional">
           <input
             className="li-input"
@@ -301,30 +423,15 @@ export function ProfileEditForm() {
           <p className="text-sm text-[var(--li-muted)]">Nenhuma experiência.</p>
         ) : (
           <ul className="space-y-3">
-            {(profile.experiences ?? []).map((e) => {
-              const id = recordId(e);
-              return (
-                <li
-                  key={id}
-                  className="flex items-start justify-between gap-3 border-b border-[var(--li-border)] pb-3 last:border-0"
-                >
-                  <div>
-                    <p className="font-medium">{experienceTitle(e)}</p>
-                    <p className="text-sm text-[var(--li-muted)]">
-                      {experienceCompany(e)}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeExperience(id)}
-                    disabled={saving}
-                    className="text-xs text-red-600 hover:underline"
-                  >
-                    Remover
-                  </button>
-                </li>
-              );
-            })}
+            {(profile.experiences ?? []).map((e) => (
+              <ExperienceRow
+                key={e.id}
+                experience={e}
+                saving={saving}
+                onRemove={removeExperience}
+                onSaved={load}
+              />
+            ))}
           </ul>
         )}
         <form onSubmit={addExperience} className="space-y-3 border-t border-[var(--li-border)] pt-4">
@@ -371,32 +478,27 @@ export function ProfileEditForm() {
           <p className="text-sm text-[var(--li-muted)]">Nenhuma formação.</p>
         ) : (
           <ul className="space-y-3">
-            {(profile.educations ?? []).map((e) => {
-              const id = recordId(e);
-              return (
-                <li
-                  key={id}
-                  className="flex items-start justify-between gap-3 border-b border-[var(--li-border)] pb-3 last:border-0"
+            {(profile.educations ?? []).map((e) => (
+              <li
+                key={e.id}
+                className="flex items-start justify-between gap-3 border-b border-[var(--li-border)] pb-3 last:border-0"
+              >
+                <div>
+                  <p className="font-medium">{e.institution?.name}</p>
+                  <p className="text-sm text-[var(--li-muted)]">
+                    {[e.degree, e.field_of_study].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeEducation(e.id)}
+                  disabled={saving}
+                  className="text-xs text-red-600 hover:underline"
                 >
-                  <div>
-                    <p className="font-medium">{educationInstitution(e)}</p>
-                    <p className="text-sm text-[var(--li-muted)]">
-                      {[educationDegree(e), educationField(e)]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeEducation(id)}
-                    disabled={saving}
-                    className="text-xs text-red-600 hover:underline"
-                  >
-                    Remover
-                  </button>
-                </li>
-              );
-            })}
+                  Remover
+                </button>
+              </li>
+            ))}
           </ul>
         )}
         <form onSubmit={addEducation} className="space-y-3 border-t border-[var(--li-border)] pt-4">

@@ -1,9 +1,12 @@
 import { authHeaders } from "./auth";
 import type {
+  ABExperimentResult,
+  AcceptedConnection,
   AnalyticsOverview,
   AuthResponse,
   ChurnUser,
   CohortRow,
+  Comment,
   Connection,
   DauPoint,
   Education,
@@ -11,11 +14,14 @@ import type {
   FeedResponse,
   GraphNode,
   GraphResponse,
+  LinkPrediction,
+  MLModel,
   PersonSearchHit,
   PersonSuggestion,
   Post,
   PostSearchHit,
   Profile,
+  RecommendationsMeta,
   Skill,
   TopPost,
 } from "./types";
@@ -142,6 +148,24 @@ export function createExperience(body: {
   );
 }
 
+export function patchExperience(
+  id: string,
+  body: {
+    company_name?: string;
+    title?: string;
+    description?: string;
+    start_year?: number | null;
+    end_year?: number | null;
+    is_current?: boolean;
+  },
+): Promise<Experience> {
+  return request<Experience>(
+    `/v1/me/experiences/${id}`,
+    { method: "PATCH", body: JSON.stringify(body) },
+    true,
+  );
+}
+
 export function deleteExperience(id: string): Promise<void> {
   return request<void>(`/v1/me/experiences/${id}`, { method: "DELETE" }, true);
 }
@@ -204,6 +228,10 @@ export function listPending(): Promise<Connection[]> {
   return request<Connection[]>("/v1/connections/pending", undefined, true);
 }
 
+export function listConnections(): Promise<AcceptedConnection[]> {
+  return request<AcceptedConnection[]>("/v1/connections", undefined, true);
+}
+
 // Posts & feed
 export function getFeed(limit = 50): Promise<FeedResponse> {
   return request<FeedResponse>(`/v1/feed?limit=${limit}`, undefined, true);
@@ -221,6 +249,18 @@ export function reactToPost(postId: string, kind = "like"): Promise<void> {
   return request<void>(
     `/v1/posts/${postId}/reactions`,
     { method: "POST", body: JSON.stringify({ kind }) },
+    true,
+  );
+}
+
+export function listComments(postId: string): Promise<Comment[]> {
+  return request<Comment[]>(`/v1/posts/${postId}/comments`);
+}
+
+export function addComment(postId: string, body: string): Promise<Comment> {
+  return request<Comment>(
+    `/v1/posts/${postId}/comments`,
+    { method: "POST", body: JSON.stringify({ body }) },
     true,
   );
 }
@@ -260,6 +300,14 @@ export function getRecommendations(): Promise<PersonSuggestion[]> {
   );
 }
 
+export function getRecommendationsMeta(): Promise<RecommendationsMeta> {
+  return request<RecommendationsMeta>(
+    "/v1/recommendations/meta",
+    undefined,
+    true,
+  );
+}
+
 // Network graph
 export function getNetworkGraph(): Promise<GraphResponse> {
   return request<GraphResponse>("/v1/network/graph", undefined, true);
@@ -268,6 +316,14 @@ export function getNetworkGraph(): Promise<GraphResponse> {
 export function getInfluencers(limit = 10): Promise<GraphNode[]> {
   return request<GraphNode[]>(
     `/v1/network/influencers?limit=${limit}`,
+    undefined,
+    true,
+  );
+}
+
+export function getLinkPredictions(limit = 10): Promise<LinkPrediction[]> {
+  return request<LinkPrediction[]>(
+    `/v1/network/link-predictions?limit=${limit}`,
     undefined,
     true,
   );
@@ -304,6 +360,18 @@ export function getDau(days = 30): Promise<DauPoint[]> {
     undefined,
     true,
   );
+}
+
+export function getExperiments(): Promise<ABExperimentResult[]> {
+  return request<ABExperimentResult[]>(
+    "/v1/analytics/experiments",
+    undefined,
+    true,
+  );
+}
+
+export function getMLModels(): Promise<MLModel[]> {
+  return request<MLModel[]>("/v1/analytics/ml-models", undefined, true);
 }
 
 // Dev

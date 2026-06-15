@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   acceptConnection,
-  getRecommendations,
+  getRecommendationsMeta,
   listPending,
   rejectConnection,
   requestConnection,
@@ -14,21 +14,31 @@ import type { Connection, PersonSuggestion } from "@/lib/types";
 
 export function RecommendationsPanel() {
   const [recs, setRecs] = useState<PersonSuggestion[]>([]);
+  const [scoringMethod, setScoringMethod] = useState("");
+  const [mlModel, setMlModel] = useState<string | null>(null);
   const [pending, setPending] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function load() {
     setLoading(true);
     try {
-      const [r, p] = await Promise.all([
-        getRecommendations(),
+      const [meta, p] = await Promise.all([
+        getRecommendationsMeta(),
         listPending(),
       ]);
-      setRecs(r);
+      setRecs(meta.suggestions);
+      setScoringMethod(meta.scoring_method);
+      setMlModel(
+        meta.ml_model
+          ? `${meta.ml_model.model_name} v${meta.ml_model.version}`
+          : null,
+      );
       setPending(p);
     } catch {
       setRecs([]);
       setPending([]);
+      setScoringMethod("");
+      setMlModel(null);
     } finally {
       setLoading(false);
     }
@@ -87,7 +97,21 @@ export function RecommendationsPanel() {
       )}
 
       <div className="li-card p-4">
-        <h2 className="mb-3 text-sm font-semibold">Pessoas que você pode conhecer</h2>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <h2 className="text-sm font-semibold">
+            Pessoas que você pode conhecer
+          </h2>
+          {scoringMethod && (
+            <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+              {scoringMethod}
+            </span>
+          )}
+          {mlModel && (
+            <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800">
+              ML: {mlModel}
+            </span>
+          )}
+        </div>
         {loading ? (
           <p className="text-sm text-[var(--li-muted)]">Carregando...</p>
         ) : recs.length === 0 ? (

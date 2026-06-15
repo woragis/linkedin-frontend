@@ -1,24 +1,62 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { reactToPost, trackEvents } from "@/lib/api";
+import { useCallback, useEffect, useState } from "react";
+import { addComment, listComments, reactToPost, trackEvents } from "@/lib/api";
 import { formatDate, initials } from "@/lib/format";
-import type { Post } from "@/lib/types";
+import type { Comment, Post } from "@/lib/types";
 
 function postAuthor(post: Post) {
-  return post.Author ?? {
-    user_id: post.author_id,
-    slug: "",
-    full_name: "Usuário",
-    headline: "",
-  };
+  return (
+    post.author ?? {
+      user_id: post.author_id,
+      slug: "",
+      full_name: "Usuário",
+      headline: "",
+    }
+  );
+}
+
+function commentAuthor(comment: Comment) {
+  return (
+    comment.author ?? {
+      user_id: comment.author_id,
+      slug: "",
+      full_name: "Usuário",
+      headline: "",
+    }
+  );
 }
 
 export function FeedPost({ post }: { post: Post }) {
   const author = postAuthor(post);
   const [reactions, setReactions] = useState(post.reaction_count);
+  const [commentCount, setCommentCount] = useState(post.comment_count);
   const [liked, setLiked] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const loadComments = useCallback(async () => {
+    setLoadingComments(true);
+    try {
+      const rows = await listComments(post.id);
+      setComments(rows);
+      setCommentCount(rows.length);
+    } catch {
+      setComments([]);
+    } finally {
+      setLoadingComments(false);
+    }
+  }, [post.id]);
+
+  useEffect(() => {
+    if (showComments) {
+      void loadComments();
+    }
+  }, [showComments, loadComments]);
 
   async function handleLike() {
     if (liked) return;
@@ -34,6 +72,23 @@ export function FeedPost({ post }: { post: Post }) {
       ]);
     } catch {
       /* ignore duplicate */
+    }
+  }
+
+  async function handleComment(e: React.FormEvent) {
+    e.preventDefault();
+    const body = commentText.trim();
+    if (!body) return;
+    setSubmitting(true);
+    try {
+      const created = await addComment(post.id, body);
+      setComments((prev) => [...prev, created]);
+      setCommentCount((n) => n + 1);
+      setCommentText("");
+    } catch {
+      /* ignore */
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -74,8 +129,69 @@ export function FeedPost({ post }: { post: Post }) {
         >
           Curtir ({reactions})
         </button>
-        <span>{post.comment_count} comentários</span>
+        <button
+          type="button"
+          onClick={() => setShowComments((v) => !v)}
+          className="hover:text-[var(--li-blue)]"
+        >
+          {commentCount} comentários
+        </button>
       </div>
+
+      {showComments && (
+        <div className="mt-3 space-y-3 border-t border-[var(--li-border)] pt-3">
+          {loadingComments ? (
+            <p className="text-xs text-[var(--li-muted)]">Carregando...</p>
+          ) : comments.length === 0 ? (
+            <p className="text-xs text-[var(--li-muted)]">
+              Nenhum comentário ainda.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {comments.map((c) => {
+                const ca = commentAuthor(c);
+                return (
+                  <li key={c.id} className="flex gap-2">
+                    <div className="li-avatar li-avatar-sm shrink-0 bg-[#057642] text-xs">
+                      {initials(ca.full_name)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm">
+                        <Link
+                          href={ca.slug ? `/users/${ca.slug}` : "#"}
+                          className="font-semibold hover:underline"
+                        >
+                          {ca.full_name}
+                        </Link>{" "}
+                        <span className="text-[var(--li-muted)]">
+                          · {formatDate(c.created_at)}
+                        </span>
+                      </p>
+                      <p className="text-sm">{c.body}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <form onSubmit={handleComment} className="flex gap-2">
+            <input
+              className="li-input flex-1 text-sm"
+              placeholder="Escreva um comentário..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              disabled={submitting}
+            />
+            <button
+              type="submit"
+              disabled={submitting || !commentText.trim()}
+              className="li-btn li-btn-primary px-3 text-xs"
+            >
+              Enviar
+            </button>
+          </form>
+        </div>
+      )}
     </article>
   );
 }

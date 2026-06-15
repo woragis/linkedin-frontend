@@ -25,10 +25,8 @@ export interface Profile {
 }
 
 export interface Skill {
-  id?: string;
-  ID?: string;
-  name?: string;
-  Name?: string;
+  id: string;
+  name: string;
   slug?: string;
 }
 
@@ -56,6 +54,7 @@ export interface PostAuthor {
   slug: string;
   full_name: string;
   headline?: string;
+  avatar_url?: string;
 }
 
 export interface Post {
@@ -63,9 +62,18 @@ export interface Post {
   author_id: string;
   body: string;
   created_at: string;
-  Author?: PostAuthor;
+  author?: PostAuthor;
   reaction_count: number;
   comment_count: number;
+}
+
+export interface Comment {
+  id: string;
+  post_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  author?: PostAuthor;
 }
 
 export interface FeedResponse {
@@ -81,6 +89,16 @@ export interface Connection {
   created_at: string;
 }
 
+export interface AcceptedConnection {
+  id: string;
+  user_id: string;
+  slug: string;
+  full_name: string;
+  headline: string;
+  avatar_url?: string;
+  connected_at: string;
+}
+
 export interface PersonSuggestion {
   user_id: string;
   slug: string;
@@ -89,6 +107,12 @@ export interface PersonSuggestion {
   score: number;
   rank: number;
   reasons: string[];
+}
+
+export interface RecommendationsMeta {
+  scoring_method: string;
+  ml_model?: MLModel | null;
+  suggestions: PersonSuggestion[];
 }
 
 export interface PersonSearchHit {
@@ -131,6 +155,15 @@ export interface GraphResponse {
   edges: GraphEdge[];
 }
 
+export interface LinkPrediction {
+  user_id: string;
+  slug: string;
+  full_name: string;
+  headline: string;
+  score: number;
+  reasons: string[];
+}
+
 export interface AnalyticsOverview {
   dau: number;
   mau: number;
@@ -169,4 +202,26 @@ export interface ChurnUser {
 export interface DauPoint {
   day: string;
   dau: number;
+}
+
+export interface ABExperimentResult {
+  experiment_id: string;
+  experiment_name: string;
+  primary_metric: string;
+  variant: string;
+  sample_size: number;
+  metric_value: number;
+  ci_lower?: number;
+  ci_upper?: number;
+  computed_at: string;
+}
+
+export interface MLModel {
+  id: string;
+  model_name: string;
+  version: string;
+  metrics: Record<string, number>;
+  artifact_path?: string;
+  is_active: boolean;
+  trained_at: string;
 }

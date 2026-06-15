@@ -6,14 +6,6 @@ import { useEffect, useState } from "react";
 import { getProfileBySlug, requestConnection } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import { initials } from "@/lib/format";
-import {
-  educationDegree,
-  educationField,
-  educationInstitution,
-  experienceCompany,
-  experienceTitle,
-  recordId,
-} from "@/lib/profile-helpers";
 import type { Profile } from "@/lib/types";
 
 export default function UserProfilePage() {
@@ -61,9 +53,17 @@ export default function UserProfilePage() {
         <div className="h-24 bg-gradient-to-r from-[var(--li-blue)] to-[#004182]" />
         <div className="px-6 pb-6">
           <div className="-mt-10 flex flex-wrap items-end justify-between gap-4">
-            <div className="li-avatar h-20 w-20 border-4 border-white bg-[var(--li-blue)] text-lg">
-              {initials(profile.full_name)}
-            </div>
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt=""
+                className="h-20 w-20 rounded-full border-4 border-white object-cover"
+              />
+            ) : (
+              <div className="li-avatar h-20 w-20 border-4 border-white bg-[var(--li-blue)] text-lg">
+                {initials(profile.full_name)}
+              </div>
+            )}
             {!isSelf && (
               <button
                 type="button"
@@ -95,11 +95,11 @@ export default function UserProfilePage() {
         <section className="li-card p-6">
           <h2 className="font-semibold">Experiência</h2>
           <ul className="mt-4 space-y-4">
-            {profile.experiences.map((e, i) => (
-              <li key={i}>
-                <p className="font-medium">{experienceTitle(e)}</p>
+            {profile.experiences.map((e) => (
+              <li key={e.id}>
+                <p className="font-medium">{e.title}</p>
                 <p className="text-sm text-[var(--li-muted)]">
-                  {experienceCompany(e)}
+                  {e.company?.name}
                 </p>
               </li>
             ))}
@@ -111,13 +111,11 @@ export default function UserProfilePage() {
         <section className="li-card p-6">
           <h2 className="font-semibold">Formação</h2>
           <ul className="mt-4 space-y-4">
-            {profile.educations.map((e, i) => (
-              <li key={i}>
-                <p className="font-medium">{educationInstitution(e)}</p>
+            {profile.educations.map((e) => (
+              <li key={e.id}>
+                <p className="font-medium">{e.institution?.name}</p>
                 <p className="text-sm text-[var(--li-muted)]">
-                  {[educationDegree(e), educationField(e)]
-                    .filter(Boolean)
-                    .join(" · ")}
+                  {[e.degree, e.field_of_study].filter(Boolean).join(" · ")}
                 </p>
               </li>
             ))}
@@ -129,12 +127,12 @@ export default function UserProfilePage() {
         <section className="li-card p-6">
           <h2 className="font-semibold">Competências</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            {profile.skills.map((s, i) => (
+            {profile.skills.map((s) => (
               <span
-                key={recordId(s) || `skill-${i}`}
+                key={s.id}
                 className="rounded-full border border-[var(--li-border)] px-3 py-1 text-sm"
               >
-                {s.name ?? s.Name}
+                {s.name}
               </span>
             ))}
           </div>
