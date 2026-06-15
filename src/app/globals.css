@@ -1,26 +1,66 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --li-blue: #0a66c2;
+  --li-blue-hover: #004182;
+  --li-bg: #f3f2ef;
+  --li-card: #ffffff;
+  --li-border: #e0dfdc;
+  --li-text: #191919;
+  --li-muted: #666666;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--li-bg);
+  color: var(--li-text);
+}
+
+.li-btn {
+  @apply inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition-colors;
+}
+
+.li-btn-primary {
+  background: var(--li-blue);
+  color: white;
+}
+
+.li-btn-primary:hover {
+  background: var(--li-blue-hover);
+}
+
+.li-btn-ghost {
+  @apply border border-[var(--li-border)] bg-white text-[var(--li-text)];
+}
+
+.li-btn-ghost:hover {
+  @apply bg-gray-50;
+}
+
+.li-card {
+  @apply rounded-lg border border-[var(--li-border)] bg-white;
+}
+
+.li-input {
+  @apply w-full rounded border border-[var(--li-border)] px-3 py-2 text-sm outline-none focus:border-[var(--li-blue)] focus:ring-1 focus:ring-[var(--li-blue)];
+}
+
+.li-nav-link {
+  @apply flex flex-col items-center gap-0.5 px-3 py-2 text-xs text-[var(--li-muted)] transition-colors;
+}
+
+.li-nav-link:hover,
+.li-nav-link[data-active="true"] {
+  color: var(--li-text);
+}
+
+.li-nav-link[data-active="true"] {
+  border-bottom: 2px solid var(--li-text);
+}
+
+.li-avatar {
+  @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white;
+}
+
+.li-avatar-sm {
+  @apply h-10 w-10 text-xs;
 }
