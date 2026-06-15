@@ -33,4 +33,5 @@ Login demo: `alice@demo.com` / `password123`
 | `/search` | Busca pessoas e posts |
 | `/network` | Grafo Cytoscape + influenciadores |
 | `/analytics` | DAU, churn, coortes, top posts |
+| `/users/{slug}` | Perfil público |
 | `/profile/edit` | Edição de perfil, experiências, formação e skills |
