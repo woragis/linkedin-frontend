@@ -6,6 +6,8 @@ import type {
   CohortRow,
   Connection,
   DauPoint,
+  Education,
+  Experience,
   FeedResponse,
   GraphNode,
   GraphResponse,
@@ -14,6 +16,7 @@ import type {
   Post,
   PostSearchHit,
   Profile,
+  Skill,
   TopPost,
 } from "./types";
 
@@ -108,10 +111,63 @@ export function getProfileBySlug(slug: string): Promise<Profile> {
   return request<Profile>(`/v1/users/${slug}`);
 }
 
-export function patchProfile(body: Partial<Profile>): Promise<Profile> {
+export function patchProfile(body: {
+  full_name?: string;
+  slug?: string;
+  headline?: string;
+  bio?: string;
+  location?: string;
+  birth_year?: number | null;
+  avatar_url?: string | null;
+}): Promise<Profile> {
   return request<Profile>(
     "/v1/me/profile",
     { method: "PATCH", body: JSON.stringify(body) },
+    true,
+  );
+}
+
+export function createExperience(body: {
+  company_name: string;
+  title: string;
+  description?: string;
+  start_year?: number;
+  end_year?: number;
+  is_current?: boolean;
+}): Promise<Experience> {
+  return request<Experience>(
+    "/v1/me/experiences",
+    { method: "POST", body: JSON.stringify(body) },
+    true,
+  );
+}
+
+export function deleteExperience(id: string): Promise<void> {
+  return request<void>(`/v1/me/experiences/${id}`, { method: "DELETE" }, true);
+}
+
+export function createEducation(body: {
+  institution_name: string;
+  field_of_study?: string;
+  degree?: string;
+  start_year?: number;
+  end_year?: number;
+}): Promise<Education> {
+  return request<Education>(
+    "/v1/me/educations",
+    { method: "POST", body: JSON.stringify(body) },
+    true,
+  );
+}
+
+export function deleteEducation(id: string): Promise<void> {
+  return request<void>(`/v1/me/educations/${id}`, { method: "DELETE" }, true);
+}
+
+export function replaceSkills(skills: string[]): Promise<Skill[]> {
+  return request<Skill[]>(
+    "/v1/me/skills",
+    { method: "PUT", body: JSON.stringify({ skills }) },
     true,
   );
 }

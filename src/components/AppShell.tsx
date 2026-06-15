@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             {profile && (
               <Link
-                href={`/users/${profile.slug}`}
+                href="/profile/edit"
                 className="li-avatar li-avatar-sm bg-[var(--li-blue)]"
               >
                 {initials(profile.full_name)}

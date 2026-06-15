@@ -27,6 +27,12 @@ export function saveSession(token: string, userId: string, slug: string): void {
   localStorage.setItem(USER_KEY, JSON.stringify({ userId, slug }));
 }
 
+export function updateStoredSlug(slug: string): void {
+  const user = getStoredUser();
+  if (!user) return;
+  localStorage.setItem(USER_KEY, JSON.stringify({ ...user, slug }));
+}
+
 export function clearSession(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);

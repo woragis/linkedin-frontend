@@ -25,9 +25,11 @@ export interface Profile {
 }
 
 export interface Skill {
-  id: string;
-  name: string;
-  slug: string;
+  id?: string;
+  ID?: string;
+  name?: string;
+  Name?: string;
+  slug?: string;
 }
 
 export interface Experience {

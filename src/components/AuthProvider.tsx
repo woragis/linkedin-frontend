@@ -15,6 +15,7 @@ import {
   getStoredUser,
   getToken,
   saveSession,
+  updateStoredSlug,
   type StoredUser,
 } from "@/lib/auth";
 import type { Profile } from "@/lib/types";
@@ -44,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const me = await getMe();
       setProfile(me);
+      updateStoredSlug(me.slug);
+      setUser((prev) => (prev ? { ...prev, slug: me.slug } : prev));
     } catch {
       clearSession();
       setUser(null);

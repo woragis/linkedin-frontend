@@ -6,12 +6,20 @@ import { useEffect, useState } from "react";
 import { getProfileBySlug, requestConnection } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import { initials } from "@/lib/format";
+import {
+  educationDegree,
+  educationField,
+  educationInstitution,
+  experienceCompany,
+  experienceTitle,
+  recordId,
+} from "@/lib/profile-helpers";
 import type { Profile } from "@/lib/types";
 
 export default function UserProfilePage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
-  const { user, profile: me } = useAuth();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState("");
   const [connecting, setConnecting] = useState(false);
@@ -66,9 +74,9 @@ export default function UserProfilePage() {
                 {connecting ? "Enviando..." : "Conectar"}
               </button>
             )}
-            {isSelf && me && (
-              <Link href="/feed" className="li-btn li-btn-ghost">
-                Editar perfil (em breve)
+            {isSelf && (
+              <Link href="/profile/edit" className="li-btn li-btn-ghost">
+                Editar perfil
               </Link>
             )}
           </div>
@@ -87,11 +95,29 @@ export default function UserProfilePage() {
         <section className="li-card p-6">
           <h2 className="font-semibold">Experiência</h2>
           <ul className="mt-4 space-y-4">
-            {profile.experiences.map((e) => (
-              <li key={e.id}>
-                <p className="font-medium">{e.title}</p>
+            {profile.experiences.map((e, i) => (
+              <li key={i}>
+                <p className="font-medium">{experienceTitle(e)}</p>
                 <p className="text-sm text-[var(--li-muted)]">
-                  {e.company?.name}
+                  {experienceCompany(e)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {profile.educations && profile.educations.length > 0 && (
+        <section className="li-card p-6">
+          <h2 className="font-semibold">Formação</h2>
+          <ul className="mt-4 space-y-4">
+            {profile.educations.map((e, i) => (
+              <li key={i}>
+                <p className="font-medium">{educationInstitution(e)}</p>
+                <p className="text-sm text-[var(--li-muted)]">
+                  {[educationDegree(e), educationField(e)]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </p>
               </li>
             ))}
@@ -103,12 +129,12 @@ export default function UserProfilePage() {
         <section className="li-card p-6">
           <h2 className="font-semibold">Competências</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            {profile.skills.map((s) => (
+            {profile.skills.map((s, i) => (
               <span
-                key={s.id}
+                key={recordId(s) || `skill-${i}`}
                 className="rounded-full border border-[var(--li-border)] px-3 py-1 text-sm"
               >
-                {s.name}
+                {s.name ?? s.Name}
               </span>
             ))}
           </div>
