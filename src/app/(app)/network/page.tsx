@@ -10,14 +10,16 @@ import type { GraphNode, GraphResponse, LinkPrediction } from "@/lib/types";
 
 export default function NetworkPage() {
   const { user } = useAuth();
-  const [graph, setGraph] = useState<GraphResponse | null>(null);
+  const [graph, setGraph] = useState<GraphResponse>({ nodes: [], edges: [] });
   const [influencers, setInfluencers] = useState<GraphNode[]>([]);
   const [predictions, setPredictions] = useState<LinkPrediction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
+      setError(null);
       try {
         const [g, inf, pred] = await Promise.all([
           getNetworkGraph(),
@@ -27,10 +29,15 @@ export default function NetworkPage() {
         setGraph(g);
         setInfluencers(inf);
         setPredictions(pred);
-      } catch {
-        setGraph(null);
+      } catch (e) {
+        setGraph({ nodes: [], edges: [] });
         setInfluencers([]);
         setPredictions([]);
+        setError(
+          e instanceof Error
+            ? e.message
+            : "Não foi possível carregar a rede. Verifique se a API está no ar.",
+        );
       } finally {
         setLoading(false);
       }
@@ -47,12 +54,18 @@ export default function NetworkPage() {
         </p>
       </div>
 
+      {error && (
+        <p className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </p>
+      )}
+
       {loading ? (
         <p className="text-sm text-[var(--li-muted)]">Carregando grafo...</p>
       ) : (
         <NetworkGraph
-          nodes={graph?.nodes ?? []}
-          edges={graph?.edges ?? []}
+          nodes={graph.nodes}
+          edges={graph.edges}
           centerUserId={user?.userId}
         />
       )}
@@ -72,7 +85,7 @@ export default function NetworkPage() {
                     {i + 1}
                   </span>
                   <div className="li-avatar li-avatar-sm bg-[#057642]">
-                    {initials(n.full_name)}
+                    {initials(n.full_name ?? "")}
                   </div>
                   <div className="min-w-0 flex-1">
                     <Link
@@ -82,7 +95,7 @@ export default function NetworkPage() {
                       {n.full_name}
                     </Link>
                     <p className="truncate text-xs text-[var(--li-muted)]">
-                      PR {n.pagerank.toFixed(4)} · grau {n.degree}
+                      PR {(n.pagerank ?? 0).toFixed(4)} · grau {n.degree ?? 0}
                     </p>
                   </div>
                 </li>
@@ -102,7 +115,7 @@ export default function NetworkPage() {
               {predictions.map((p) => (
                 <li key={p.user_id} className="flex items-start gap-3">
                   <div className="li-avatar li-avatar-sm bg-[var(--li-blue)]">
-                    {initials(p.full_name)}
+                    {initials(p.full_name ?? "")}
                   </div>
                   <div className="min-w-0 flex-1">
                     <Link
@@ -115,8 +128,9 @@ export default function NetworkPage() {
                       {p.headline}
                     </p>
                     <p className="text-xs text-[var(--li-blue)]">
-                      score {(p.score * 100).toFixed(0)}%
-                      {p.reasons?.length > 0 && ` · ${p.reasons.join(" · ")}`}
+                      score {((p.score ?? 0) * 100).toFixed(0)}%
+                      {(p.reasons?.length ?? 0) > 0 &&
+                        ` · ${p.reasons!.join(" · ")}`}
                     </p>
                   </div>
                 </li>

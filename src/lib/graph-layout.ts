@@ -20,7 +20,9 @@ export function layoutNetworkGraph(
   const cx = width / 2;
   const cy = height / 2;
   const radius = Math.min(width, height) * 0.35;
-  const sorted = [...nodes].sort((a, b) => b.pagerank - a.pagerank);
+  const sorted = [...nodes].sort(
+    (a, b) => (b.pagerank ?? 0) - (a.pagerank ?? 0),
+  );
   const centerIdx = centerId
     ? sorted.findIndex((n) => n.user_id === centerId)
     : 0;

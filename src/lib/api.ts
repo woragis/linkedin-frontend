@@ -73,6 +73,11 @@ async function request<T>(
   return res.json() as Promise<T>;
 }
 
+/** Go encodes nil slices as JSON null — normalize to []. */
+function asArray<T>(value: T[] | null | undefined): T[] {
+  return Array.isArray(value) ? value : [];
+}
+
 export function getApiBase(): string {
   return API_BASE;
 }
@@ -309,24 +314,33 @@ export function getRecommendationsMeta(): Promise<RecommendationsMeta> {
 }
 
 // Network graph
-export function getNetworkGraph(): Promise<GraphResponse> {
-  return request<GraphResponse>("/v1/network/graph", undefined, true);
+export async function getNetworkGraph(): Promise<GraphResponse> {
+  const data = await request<GraphResponse>("/v1/network/graph", undefined, true);
+  return {
+    nodes: asArray(data?.nodes),
+    edges: asArray(data?.edges),
+  };
 }
 
-export function getInfluencers(limit = 10): Promise<GraphNode[]> {
-  return request<GraphNode[]>(
+export async function getInfluencers(limit = 10): Promise<GraphNode[]> {
+  const data = await request<GraphNode[]>(
     `/v1/network/influencers?limit=${limit}`,
     undefined,
     true,
   );
+  return asArray(data);
 }
 
-export function getLinkPredictions(limit = 10): Promise<LinkPrediction[]> {
-  return request<LinkPrediction[]>(
+export async function getLinkPredictions(limit = 10): Promise<LinkPrediction[]> {
+  const data = await request<LinkPrediction[]>(
     `/v1/network/link-predictions?limit=${limit}`,
     undefined,
     true,
   );
+  return asArray(data).map((p) => ({
+    ...p,
+    reasons: asArray(p.reasons),
+  }));
 }
 
 // Analytics
