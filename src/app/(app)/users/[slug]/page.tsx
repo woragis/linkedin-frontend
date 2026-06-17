@@ -15,6 +15,7 @@ export default function UserProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState("");
   const [connecting, setConnecting] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -31,7 +32,9 @@ export default function UserProfilePage() {
     if (!profile) return;
     setConnecting(true);
     try {
-      await requestConnection(profile.user_id);
+      const conn = await requestConnection(profile.user_id);
+      setConnectionStatus(conn.status);
+      setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao conectar");
     } finally {
@@ -64,7 +67,11 @@ export default function UserProfilePage() {
                 {initials(profile.full_name)}
               </div>
             )}
-            {!isSelf && (
+            {!isSelf && connectionStatus === "accepted" ? (
+              <span className="li-btn li-btn-ghost cursor-default opacity-80">
+                Conectado
+              </span>
+            ) : !isSelf ? (
               <button
                 type="button"
                 onClick={handleConnect}
@@ -73,7 +80,7 @@ export default function UserProfilePage() {
               >
                 {connecting ? "Enviando..." : "Conectar"}
               </button>
-            )}
+            ) : null}
             {isSelf && (
               <Link href="/profile/edit" className="li-btn li-btn-ghost">
                 Editar perfil
