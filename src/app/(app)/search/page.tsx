@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { searchPeople, searchPosts } from "@/lib/api";
 import { initials } from "@/lib/format";
 import type { PersonSearchHit, PostSearchHit } from "@/lib/types";
@@ -13,25 +13,39 @@ export default function SearchPage() {
   const [posts, setPosts] = useState<PostSearchHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const runSearch = useCallback(async (query: string, activeTab: "people" | "posts") => {
+    setLoading(true);
+    setSearched(true);
+    setError(null);
+    try {
+      if (activeTab === "people") {
+        setPeople(await searchPeople(query));
+      } else {
+        setPosts(await searchPosts(query));
+      }
+    } catch {
+      if (activeTab === "people") setPeople([]);
+      else setPosts([]);
+      setError("Não foi possível buscar. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (!q.trim()) return;
-    setLoading(true);
-    setSearched(true);
-    try {
-      if (tab === "people") {
-        setPeople(await searchPeople(q.trim()));
-        setPosts([]);
-      } else {
-        setPosts(await searchPosts(q.trim()));
-        setPeople([]);
-      }
-    } catch {
-      setPeople([]);
-      setPosts([]);
-    } finally {
-      setLoading(false);
+    const query = q.trim();
+    if (!query) return;
+    await runSearch(query, tab);
+  }
+
+  function switchTab(next: "people" | "posts") {
+    setTab(next);
+    const query = q.trim();
+    if (searched && query) {
+      void runSearch(query, next);
     }
   }
 
@@ -55,13 +69,15 @@ export default function SearchPage() {
           <button
             key={t}
             type="button"
-            onClick={() => setTab(t)}
+            onClick={() => switchTab(t)}
             className={`li-btn text-xs ${tab === t ? "li-btn-primary" : "li-btn-ghost"}`}
           >
             {t === "people" ? "Pessoas" : "Posts"}
           </button>
         ))}
       </div>
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       {searched && tab === "people" && (
         <ul className="space-y-3">

@@ -282,19 +282,19 @@ export function trackEvents(
 
 // Search & recommendations
 export function searchPeople(q: string, limit = 20): Promise<PersonSearchHit[]> {
-  return request<PersonSearchHit[]>(
+  return request<PersonSearchHit[] | null>(
     `/v1/search/people?q=${encodeURIComponent(q)}&limit=${limit}`,
     undefined,
     true,
-  );
+  ).then(asArray);
 }
 
 export function searchPosts(q: string, limit = 20): Promise<PostSearchHit[]> {
-  return request<PostSearchHit[]>(
+  return request<PostSearchHit[] | null>(
     `/v1/search/posts?q=${encodeURIComponent(q)}&limit=${limit}`,
     undefined,
     true,
-  );
+  ).then(asArray);
 }
 
 export function getRecommendations(): Promise<PersonSuggestion[]> {
