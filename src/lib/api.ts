@@ -1,4 +1,5 @@
 import { authHeaders } from "./auth";
+import { realmHeaders } from "./realm";
 import type {
   ABExperimentResult,
   AcceptedConnection,
@@ -53,6 +54,7 @@ async function request<T>(
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...realmHeaders(),
       ...(auth ? authHeaders() : {}),
       ...init?.headers,
     },
