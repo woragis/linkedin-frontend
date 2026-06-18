@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2, LogIn, Mail, Lock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -41,7 +42,10 @@ function LoginForm() {
         </p>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="text-sm font-medium">E-mail</label>
+            <label className="flex items-center gap-1.5 text-sm font-medium">
+              <Mail className="h-3.5 w-3.5 text-[var(--li-muted)]" />
+              E-mail
+            </label>
             <input
               type="email"
               className="li-input mt-1"
@@ -51,7 +55,10 @@ function LoginForm() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Senha</label>
+            <label className="flex items-center gap-1.5 text-sm font-medium">
+              <Lock className="h-3.5 w-3.5 text-[var(--li-muted)]" />
+              Senha
+            </label>
             <input
               type="password"
               className="li-input mt-1"
@@ -64,9 +71,19 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="li-btn li-btn-primary w-full"
+            className="li-btn li-btn-primary w-full gap-2"
           >
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Entrando...
+              </>
+            ) : (
+              <>
+                <LogIn className="h-4 w-4" />
+                Entrar
+              </>
+            )}
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-[var(--li-muted)]">

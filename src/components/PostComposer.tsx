@@ -1,5 +1,6 @@
 "use client";
 
+import { Send } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { createPost } from "@/lib/api";
@@ -44,7 +45,7 @@ export function PostComposer({
         </Link>
         <div className="flex-1 space-y-2">
           <textarea
-            className="li-input min-h-[80px] resize-none"
+            className="li-input min-h-[88px] resize-none"
             placeholder="Comece uma publicação..."
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -54,8 +55,9 @@ export function PostComposer({
             <button
               type="submit"
               disabled={loading || !body.trim()}
-              className="li-btn li-btn-primary disabled:opacity-50"
+              className="li-btn li-btn-primary gap-2 disabled:opacity-50"
             >
+              <Send className="h-4 w-4" />
               {loading ? "Publicando..." : "Publicar"}
             </button>
           </div>

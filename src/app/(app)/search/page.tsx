@@ -1,10 +1,17 @@
 "use client";
 
+import { FileText, Loader2, Search as SearchIcon, Users } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
+import { TabGroup } from "@/components/TabGroup";
 import { searchPeople, searchPosts } from "@/lib/api";
 import { initials } from "@/lib/format";
 import type { PersonSearchHit, PostSearchHit } from "@/lib/types";
+
+const TABS = [
+  { id: "people" as const, label: "Pessoas", icon: Users },
+  { id: "posts" as const, label: "Posts", icon: FileText },
+];
 
 export default function SearchPage() {
   const [q, setQ] = useState("");
@@ -51,48 +58,51 @@ export default function SearchPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-xl font-semibold">Busca</h1>
-      <form onSubmit={handleSearch} className="li-card flex gap-2 p-3">
+      <div>
+        <h1 className="text-xl font-semibold">Busca</h1>
+        <p className="text-sm text-[var(--li-muted)]">
+          Encontre pessoas e publicações
+        </p>
+      </div>
+
+      <form onSubmit={handleSearch} className="li-card flex items-center gap-2 p-2">
+        <SearchIcon className="ml-2 h-5 w-5 shrink-0 text-[var(--li-muted)]" />
         <input
-          className="li-input flex-1 border-0 focus:ring-0"
+          className="li-input flex-1 border-0 shadow-none focus:shadow-none"
           placeholder="Buscar pessoas ou posts..."
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
-        <button type="submit" className="li-btn li-btn-primary" disabled={loading}>
-          {loading ? "..." : "Buscar"}
+        <button type="submit" className="li-btn li-btn-primary shrink-0" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Buscando
+            </>
+          ) : (
+            "Buscar"
+          )}
         </button>
       </form>
 
-      <div className="flex gap-2">
-        {(["people", "posts"] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => switchTab(t)}
-            className={`li-btn text-xs ${tab === t ? "li-btn-primary" : "li-btn-ghost"}`}
-          >
-            {t === "people" ? "Pessoas" : "Posts"}
-          </button>
-        ))}
-      </div>
+      <TabGroup tabs={TABS} value={tab} onChange={switchTab} />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {searched && tab === "people" && (
-        <ul className="space-y-3">
+        <ul key="people" className="li-tab-panel li-card divide-y divide-[var(--li-border)]">
           {people.length === 0 ? (
-            <p className="text-sm text-[var(--li-muted)]">Nenhum resultado.</p>
+            <li className="p-6 text-sm text-[var(--li-muted)]">Nenhum resultado.</li>
           ) : (
             people.map((p) => (
-              <li key={p.user_id} className="li-card flex gap-3 p-4">
+              <li key={p.user_id} className="li-list-row">
                 <div className="li-avatar li-avatar-sm bg-[var(--li-blue)]">
                   {initials(p.full_name)}
                 </div>
                 <div>
                   <Link
                     href={`/users/${p.slug}`}
-                    className="font-semibold hover:underline"
+                    className="font-semibold hover:text-[var(--li-blue)] hover:underline"
                   >
                     {p.full_name}
                   </Link>
@@ -108,14 +118,16 @@ export default function SearchPage() {
       )}
 
       {searched && tab === "posts" && (
-        <ul className="space-y-3">
+        <ul key="posts" className="li-tab-panel space-y-3">
           {posts.length === 0 ? (
-            <p className="text-sm text-[var(--li-muted)]">Nenhum resultado.</p>
+            <li className="li-card p-6 text-sm text-[var(--li-muted)]">
+              Nenhum resultado.
+            </li>
           ) : (
             posts.map((p) => (
               <li key={p.post_id} className="li-card p-4">
                 <p className="text-sm font-semibold">{p.author_name}</p>
-                <p className="mt-2 text-sm">{p.body}</p>
+                <p className="mt-2 text-sm leading-relaxed">{p.body}</p>
               </li>
             ))
           )}

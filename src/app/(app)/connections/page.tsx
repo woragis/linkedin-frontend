@@ -1,5 +1,6 @@
 "use client";
 
+import { UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { listConnections } from "@/lib/api";
@@ -30,11 +31,16 @@ export default function ConnectionsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold">Conexões</h1>
-        <p className="text-sm text-[var(--li-muted)]">
-          Pessoas com quem você está conectado
-        </p>
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#e8f4fc] text-[var(--li-blue)]">
+          <UserPlus className="h-5 w-5" />
+        </div>
+        <div>
+          <h1 className="text-xl font-semibold">Conexões</h1>
+          <p className="text-sm text-[var(--li-muted)]">
+            Pessoas com quem você está conectado
+          </p>
+        </div>
       </div>
 
       {error && (
@@ -50,9 +56,9 @@ export default function ConnectionsPage() {
           Você ainda não tem conexões aceitas.
         </div>
       ) : (
-        <ul className="li-card divide-y divide-[var(--li-border)]">
+        <ul className="li-card divide-y divide-[var(--li-border)] overflow-hidden">
           {connections.map((c) => (
-            <li key={c.id} className="flex items-center gap-3 p-4">
+            <li key={c.id} className="li-list-row items-center">
               {c.avatar_url ? (
                 <img
                   src={c.avatar_url}
@@ -67,7 +73,7 @@ export default function ConnectionsPage() {
               <div className="min-w-0 flex-1">
                 <Link
                   href={`/users/${c.slug}`}
-                  className="font-semibold hover:underline"
+                  className="font-semibold hover:text-[var(--li-blue)] hover:underline"
                 >
                   {c.full_name}
                 </Link>

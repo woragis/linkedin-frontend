@@ -8,6 +8,9 @@
   --li-border: #e0dfdc;
   --li-text: #191919;
   --li-muted: #666666;
+  --li-action-hover: #f3f2ef;
+  --li-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --li-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 body {
@@ -16,7 +19,12 @@ body {
 }
 
 .li-btn {
-  @apply inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition-colors;
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200;
+  transition-timing-function: var(--li-ease);
+}
+
+.li-btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .li-btn-primary {
@@ -24,43 +32,236 @@ body {
   color: white;
 }
 
-.li-btn-primary:hover {
+.li-btn-primary:hover:not(:disabled) {
   background: var(--li-blue-hover);
+  box-shadow: 0 2px 8px rgb(10 102 194 / 0.25);
 }
 
 .li-btn-ghost {
   @apply border border-[var(--li-border)] bg-white text-[var(--li-text)];
 }
 
-.li-btn-ghost:hover {
+.li-btn-ghost:hover:not(:disabled) {
   @apply bg-gray-50;
+  border-color: #c7c6c3;
 }
 
 .li-card {
-  @apply rounded-lg border border-[var(--li-border)] bg-white;
+  @apply rounded-lg border border-[var(--li-border)] bg-white shadow-sm transition-shadow duration-200;
+}
+
+.li-card:hover {
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.06);
 }
 
 .li-input {
-  @apply w-full rounded border border-[var(--li-border)] px-3 py-2 text-sm outline-none focus:border-[var(--li-blue)] focus:ring-1 focus:ring-[var(--li-blue)];
+  @apply w-full rounded border border-[var(--li-border)] px-3 py-2 text-sm outline-none transition-all duration-200;
+  transition-timing-function: var(--li-ease);
+}
+
+.li-input:focus {
+  border-color: var(--li-blue);
+  box-shadow: 0 0 0 3px rgb(10 102 194 / 0.12);
 }
 
 .li-nav-link {
-  @apply flex flex-col items-center gap-0.5 px-3 py-2 text-xs text-[var(--li-muted)] transition-colors;
+  @apply relative flex min-w-[4.5rem] flex-col items-center gap-0.5 rounded-md px-3 py-2 text-xs font-medium text-[var(--li-muted)] transition-all duration-200;
+  transition-timing-function: var(--li-ease);
 }
 
-.li-nav-link:hover,
+.li-nav-link svg {
+  @apply h-5 w-5 transition-transform duration-200;
+}
+
+.li-nav-link:hover {
+  color: var(--li-text);
+  background: var(--li-action-hover);
+}
+
+.li-nav-link:hover svg {
+  transform: translateY(-1px);
+}
+
+.li-nav-link:active {
+  transform: scale(0.96);
+}
+
 .li-nav-link[data-active="true"] {
   color: var(--li-text);
 }
 
-.li-nav-link[data-active="true"] {
-  border-bottom: 2px solid var(--li-text);
+.li-nav-link[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  width: 100%;
+  max-width: 3.5rem;
+  height: 2px;
+  background: var(--li-text);
+  border-radius: 2px 2px 0 0;
+  transform: translateX(-50%) scaleX(1);
+  animation: li-nav-underline 0.25s var(--li-ease);
+}
+
+@keyframes li-nav-underline {
+  from {
+    transform: translateX(-50%) scaleX(0.4);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 1;
+  }
 }
 
 .li-avatar {
-  @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white;
+  @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white transition-transform duration-200;
+}
+
+.li-avatar:hover {
+  transform: scale(1.04);
 }
 
 .li-avatar-sm {
   @apply h-10 w-10 text-xs;
+}
+
+/* Post action bar */
+.li-action-btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm font-semibold text-[var(--li-muted)] transition-all duration-200;
+  transition-timing-function: var(--li-ease);
+  color: var(--li-muted);
+}
+
+.li-action-btn:hover {
+  background: var(--li-action-hover);
+  color: var(--li-text);
+}
+
+.li-action-btn:active {
+  transform: scale(0.96);
+}
+
+.li-action-btn.is-active {
+  color: var(--action-color, var(--li-blue));
+}
+
+.li-action-btn.is-pop {
+  animation: li-reaction-pop 0.32s var(--li-spring);
+}
+
+@keyframes li-reaction-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* LinkedIn-style reaction tray */
+.li-reaction-tray {
+  @apply absolute bottom-full left-1/2 z-20 mb-2 flex gap-1 rounded-full border border-[var(--li-border)] bg-white px-2 py-1.5 shadow-lg;
+  transform: translateX(-50%);
+  animation: li-tray-in 0.22s var(--li-spring) both;
+}
+
+@keyframes li-tray-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.li-reaction-bubble {
+  @apply flex h-11 w-11 items-center justify-center rounded-full border-0 transition-all duration-200;
+  color: var(--rxn-color);
+  background: transparent;
+  animation: li-bubble-in 0.28s var(--li-spring) both;
+  animation-delay: var(--rxn-delay, 0ms);
+  transition-timing-function: var(--li-ease);
+}
+
+@keyframes li-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.li-reaction-bubble:hover {
+  background: var(--rxn-bg);
+  transform: scale(1.22) translateY(-4px);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.12);
+}
+
+.li-reaction-bubble:active {
+  transform: scale(1.05);
+}
+
+/* Animated tabs */
+.li-tab-group {
+  @apply relative flex rounded-lg border border-[var(--li-border)] bg-white p-1;
+}
+
+.li-tab {
+  @apply relative z-10 flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold text-[var(--li-muted)] transition-colors duration-200;
+  transition-timing-function: var(--li-ease);
+}
+
+.li-tab:hover {
+  color: var(--li-text);
+}
+
+.li-tab:active {
+  transform: scale(0.98);
+}
+
+.li-tab[data-active="true"] {
+  color: var(--li-blue);
+}
+
+.li-tab-indicator {
+  @apply absolute top-1 bottom-1 rounded-md bg-[#e8f4fc] transition-transform duration-300;
+  left: 0.25rem;
+  width: calc((100% - 0.5rem) / var(--tab-count, 2));
+  transform: translateX(calc(var(--tab-active, 0) * 100%));
+  transition-timing-function: var(--li-spring);
+}
+
+/* Tab panel fade */
+.li-tab-panel {
+  animation: li-panel-in 0.28s var(--li-ease) both;
+}
+
+@keyframes li-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Search & list rows */
+.li-list-row {
+  @apply flex gap-3 p-4 transition-colors duration-200;
+}
+
+.li-list-row:hover {
+  background: #faf9f7;
 }

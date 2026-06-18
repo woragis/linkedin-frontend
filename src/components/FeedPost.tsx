@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { Send } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { addComment, listComments, reactToPost, trackEvents } from "@/lib/api";
+import { addComment, listComments } from "@/lib/api";
 import { formatDate, initials } from "@/lib/format";
 import type { Comment, Post } from "@/lib/types";
+import { ReactionBar } from "./ReactionBar";
 
 function postAuthor(post: Post) {
   return (
@@ -30,9 +32,7 @@ function commentAuthor(comment: Comment) {
 
 export function FeedPost({ post }: { post: Post }) {
   const author = postAuthor(post);
-  const [reactions, setReactions] = useState(post.reaction_count);
   const [commentCount, setCommentCount] = useState(post.comment_count);
-  const [liked, setLiked] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
@@ -57,23 +57,6 @@ export function FeedPost({ post }: { post: Post }) {
       void loadComments();
     }
   }, [showComments, loadComments]);
-
-  async function handleLike() {
-    if (liked) return;
-    try {
-      await reactToPost(post.id);
-      setReactions((n) => n + 1);
-      setLiked(true);
-      void trackEvents([
-        {
-          type: "post_liked",
-          payload: { post_id: post.id },
-        },
-      ]);
-    } catch {
-      /* ignore duplicate */
-    }
-  }
 
   async function handleComment(e: React.FormEvent) {
     e.preventDefault();
@@ -104,7 +87,7 @@ export function FeedPost({ post }: { post: Post }) {
         <div className="min-w-0 flex-1">
           <Link
             href={author.slug ? `/users/${author.slug}` : "#"}
-            className="font-semibold hover:underline"
+            className="font-semibold hover:text-[var(--li-blue)] hover:underline"
           >
             {author.full_name}
           </Link>
@@ -121,25 +104,17 @@ export function FeedPost({ post }: { post: Post }) {
       <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">
         {post.body}
       </p>
-      <div className="mt-3 flex items-center gap-4 border-t border-[var(--li-border)] pt-3 text-sm text-[var(--li-muted)]">
-        <button
-          type="button"
-          onClick={handleLike}
-          className={`hover:text-[var(--li-blue)] ${liked ? "font-semibold text-[var(--li-blue)]" : ""}`}
-        >
-          Curtir ({reactions})
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowComments((v) => !v)}
-          className="hover:text-[var(--li-blue)]"
-        >
-          {commentCount} comentários
-        </button>
-      </div>
+
+      <ReactionBar
+        postId={post.id}
+        reactionCount={post.reaction_count}
+        commentCount={commentCount}
+        commentsOpen={showComments}
+        onToggleComments={() => setShowComments((v) => !v)}
+      />
 
       {showComments && (
-        <div className="mt-3 space-y-3 border-t border-[var(--li-border)] pt-3">
+        <div className="li-tab-panel mt-3 space-y-3 border-t border-[var(--li-border)] pt-3">
           {loadingComments ? (
             <p className="text-xs text-[var(--li-muted)]">Carregando...</p>
           ) : comments.length === 0 ? (
@@ -159,7 +134,7 @@ export function FeedPost({ post }: { post: Post }) {
                       <p className="text-sm">
                         <Link
                           href={ca.slug ? `/users/${ca.slug}` : "#"}
-                          className="font-semibold hover:underline"
+                          className="font-semibold hover:text-[var(--li-blue)] hover:underline"
                         >
                           {ca.full_name}
                         </Link>{" "}
@@ -185,8 +160,9 @@ export function FeedPost({ post }: { post: Post }) {
             <button
               type="submit"
               disabled={submitting || !commentText.trim()}
-              className="li-btn li-btn-primary px-3 text-xs"
+              className="li-btn li-btn-primary gap-1.5 px-3 text-xs"
             >
+              <Send className="h-3.5 w-3.5" />
               Enviar
             </button>
           </form>

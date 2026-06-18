@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2, Lock, Mail, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -39,7 +40,10 @@ function RegisterForm() {
         <p className="mt-2 text-sm text-[var(--li-muted)]">Crie sua conta</p>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="text-sm font-medium">Nome completo</label>
+            <label className="flex items-center gap-1.5 text-sm font-medium">
+              <UserPlus className="h-3.5 w-3.5 text-[var(--li-muted)]" />
+              Nome completo
+            </label>
             <input
               className="li-input mt-1"
               value={fullName}
@@ -48,7 +52,10 @@ function RegisterForm() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">E-mail</label>
+            <label className="flex items-center gap-1.5 text-sm font-medium">
+              <Mail className="h-3.5 w-3.5 text-[var(--li-muted)]" />
+              E-mail
+            </label>
             <input
               type="email"
               className="li-input mt-1"
@@ -58,7 +65,10 @@ function RegisterForm() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Senha (mín. 8)</label>
+            <label className="flex items-center gap-1.5 text-sm font-medium">
+              <Lock className="h-3.5 w-3.5 text-[var(--li-muted)]" />
+              Senha (mín. 8)
+            </label>
             <input
               type="password"
               className="li-input mt-1"
@@ -72,9 +82,19 @@ function RegisterForm() {
           <button
             type="submit"
             disabled={loading}
-            className="li-btn li-btn-primary w-full"
+            className="li-btn li-btn-primary w-full gap-2"
           >
-            {loading ? "Criando..." : "Cadastrar"}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Criando...
+              </>
+            ) : (
+              <>
+                <UserPlus className="h-4 w-4" />
+                Cadastrar
+              </>
+            )}
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-[var(--li-muted)]">
