@@ -65,15 +65,29 @@ export interface Post {
   author?: PostAuthor;
   reaction_count: number;
   comment_count: number;
+  reaction_summary?: ReactionSummary;
+  my_reaction?: string;
 }
+
+export type ReactionSummary = Partial<
+  Record<
+    "like" | "celebrate" | "support" | "love" | "insightful" | "funny",
+    number
+  >
+>;
 
 export interface Comment {
   id: string;
   post_id: string;
   author_id: string;
+  parent_comment_id?: string | null;
   body: string;
   created_at: string;
   author?: PostAuthor;
+  reaction_count?: number;
+  reaction_summary?: ReactionSummary;
+  my_reaction?: string;
+  replies?: Comment[];
 }
 
 export interface FeedResponse {

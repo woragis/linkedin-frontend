@@ -262,13 +262,31 @@ export function reactToPost(postId: string, kind = "like"): Promise<void> {
 }
 
 export function listComments(postId: string): Promise<Comment[]> {
-  return request<Comment[]>(`/v1/posts/${postId}/comments`);
+  return request<Comment[]>(`/v1/posts/${postId}/comments`, undefined, true);
 }
 
-export function addComment(postId: string, body: string): Promise<Comment> {
+export function addComment(
+  postId: string,
+  body: string,
+  parentCommentId?: string,
+): Promise<Comment> {
   return request<Comment>(
     `/v1/posts/${postId}/comments`,
-    { method: "POST", body: JSON.stringify({ body }) },
+    {
+      method: "POST",
+      body: JSON.stringify({
+        body,
+        ...(parentCommentId ? { parent_comment_id: parentCommentId } : {}),
+      }),
+    },
+    true,
+  );
+}
+
+export function reactToComment(commentId: string, kind = "like"): Promise<void> {
+  return request<void>(
+    `/v1/comments/${commentId}/reactions`,
+    { method: "POST", body: JSON.stringify({ kind }) },
     true,
   );
 }
