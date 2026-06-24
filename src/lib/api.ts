@@ -15,6 +15,7 @@ import type {
   FeedResponse,
   GraphNode,
   GraphResponse,
+  LabSampleResponse,
   LinkPrediction,
   MLModel,
   PersonSearchHit,
@@ -343,6 +344,22 @@ export async function getLinkPredictions(limit = 10): Promise<LinkPrediction[]> 
     ...p,
     reasons: asArray(p.reasons),
   }));
+}
+
+export async function getLabSample(limit = 150): Promise<LabSampleResponse> {
+  const data = await request<LabSampleResponse>(
+    `/v1/network/lab-sample?limit=${limit}`,
+    undefined,
+    true,
+  );
+  return {
+    nodes: asArray(data?.nodes),
+    edges: asArray(data?.edges),
+    total_users: data?.total_users ?? 0,
+    total_edges: data?.total_edges ?? 0,
+    sample_size: data?.sample_size ?? 0,
+    seed_user_id: data?.seed_user_id ?? "",
+  };
 }
 
 // Analytics

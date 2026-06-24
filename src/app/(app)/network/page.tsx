@@ -2,19 +2,26 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { FlaskConical } from "lucide-react";
 import { NetworkGraph } from "@/components/NetworkGraph";
 import { useAuth } from "@/components/AuthProvider";
 import { getInfluencers, getLinkPredictions, getNetworkGraph } from "@/lib/api";
 import { initials } from "@/lib/format";
+import { getRealm } from "@/lib/realm";
 import type { GraphNode, GraphResponse, LinkPrediction } from "@/lib/types";
 
 export default function NetworkPage() {
   const { user } = useAuth();
+  const [realm, setRealm] = useState<"live" | "volume">("live");
   const [graph, setGraph] = useState<GraphResponse>({ nodes: [], edges: [] });
   const [influencers, setInfluencers] = useState<GraphNode[]>([]);
   const [predictions, setPredictions] = useState<LinkPrediction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRealm(getRealm());
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -45,6 +52,8 @@ export default function NetworkPage() {
     void load();
   }, []);
 
+  const isVolume = realm === "volume";
+
   return (
     <div className="space-y-6">
       <div>
@@ -53,6 +62,22 @@ export default function NetworkPage() {
           Subgrafo de conexões com PageRank e comunidades
         </p>
       </div>
+
+      {isVolume && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <span>
+            <strong>Modo laboratório.</strong> Grafo sintético em escala — explore
+            a amostra interativa com física e molas.
+          </span>
+          <Link
+            href="/lab"
+            className="li-btn li-btn-primary inline-flex gap-1.5 text-xs"
+          >
+            <FlaskConical className="h-3.5 w-3.5" />
+            Abrir laboratório
+          </Link>
+        </div>
+      )}
 
       {error && (
         <p className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -67,6 +92,7 @@ export default function NetworkPage() {
           nodes={graph.nodes}
           edges={graph.edges}
           centerUserId={user?.userId}
+          layoutMode={isVolume ? "physics" : "preset"}
         />
       )}
 

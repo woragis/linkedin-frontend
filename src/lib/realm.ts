@@ -24,3 +24,7 @@ export function realmDescription(realm: AppRealm): string {
     ? "Laboratório de grafo em escala"
     : "Rede social com vida e conversas";
 }
+
+export function isVolumeRealm(): boolean {
+  return getRealm() === "volume";
+}

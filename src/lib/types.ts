@@ -155,6 +155,13 @@ export interface GraphResponse {
   edges: GraphEdge[];
 }
 
+export interface LabSampleResponse extends GraphResponse {
+  total_users: number;
+  total_edges: number;
+  sample_size: number;
+  seed_user_id: string;
+}
+
 export interface LinkPrediction {
   user_id: string;
   slug: string;

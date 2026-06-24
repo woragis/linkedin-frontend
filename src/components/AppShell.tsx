@@ -2,6 +2,7 @@
 
 import {
   BarChart3,
+  FlaskConical,
   Home,
   LogOut,
   Network,
@@ -10,11 +11,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider";
 import { RealmToggle } from "./RealmToggle";
 import { initials } from "@/lib/format";
+import { getRealm } from "@/lib/realm";
 
-const NAV = [
+const BASE_NAV = [
   { href: "/feed", label: "Início", Icon: Home },
   { href: "/search", label: "Busca", Icon: Search },
   { href: "/connections", label: "Conexões", Icon: Users },
@@ -22,9 +25,22 @@ const NAV = [
   { href: "/analytics", label: "Analytics", Icon: BarChart3 },
 ] as const;
 
+const LAB_NAV = {
+  href: "/lab",
+  label: "Lab",
+  Icon: FlaskConical,
+} as const;
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { profile, logout } = useAuth();
+  const [isVolume, setIsVolume] = useState(false);
+
+  useEffect(() => {
+    setIsVolume(getRealm() === "volume");
+  }, []);
+
+  const nav = isVolume ? [...BASE_NAV, LAB_NAV] : [...BASE_NAV];
 
   return (
     <div className="min-h-screen bg-[var(--li-bg)]">
@@ -37,7 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             in
           </Link>
           <nav className="flex flex-1 items-center justify-center gap-0.5">
-            {NAV.map((item) => {
+            {nav.map((item) => {
               const active = pathname.startsWith(item.href);
               return (
                 <Link
